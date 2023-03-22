@@ -14,7 +14,9 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <jpeglib.h>
+
+#include "jfif.h"
+#include "bmp.h"
 
 static int singleton = 0;
 
@@ -98,57 +100,37 @@ static void *video_thread(void *data) {
 
 				if (buf[0] == 0xFF && buf[1] == 0xD8) {
 
-					struct jpeg_decompress_struct cinfo;
-					struct jpeg_error_mgr jerr;
-					cinfo.err = jpeg_std_error(&jerr);	
-					jpeg_create_decompress(&cinfo);
-	
-					jpeg_mem_src(&cinfo, buf, wm->bufferSize);
-					int rc = jpeg_read_header(&cinfo, TRUE);
-					if (rc == 1) {
-						jpeg_start_decompress(&cinfo);	
-	
-						int width = cinfo.output_width;
-						int height = cinfo.output_height;
-						int pixelSize = cinfo.output_components;
-	
-						if (width == 1280 && height == 720) {
-							uint32_t bmpSize = width * height * pixelSize;
-							uint8_t *bmp = bzalloc(bmpSize);
-	
-	
-							int rowStride = width * pixelSize;
-	
-							while (cinfo.output_scanline < cinfo.output_height) {
-								unsigned char *buffer_array[1];
-								buffer_array[0] = bmp + (cinfo.output_scanline) * rowStride;
-								jpeg_read_scanlines(&cinfo, buffer_array, 1);
-							}
-	
+					void *jfif = jfif_load(buf, wm->bufferSize);
+					if (jfif) {
+						//jfif_dump(jfif);
+						BMP bmp = {0};
+						if (jfif_decode(jfif, &bmp) < 0) {
+							jfif_free(jfif);
+						} else {
+							jfif_free(jfif);
+
 							int ip = 0;
 							int op = 0;
-	
+		
 							for (int y = 0; y < 720; y++) {
 								for (int x = 0; x < 1280; x++) {
-									uint8_t r = bmp[ip++];
-									uint8_t g = bmp[ip++];
-									uint8_t b = bmp[ip++];
-									pixels[op] = b;
-									pixels[op] |= (g << 8);
-									pixels[op] |= (r << 16);
-									pixels[op] |= (0xFF << 24);
+									pixels[op] = 0xFF000000;
+									pixels[op] |= ((uint8_t *)bmp.pdata)[ip++] << 0;
+									pixels[op] |= ((uint8_t *)bmp.pdata)[ip++] << 8;
+									pixels[op] |= ((uint8_t *)bmp.pdata)[ip++] << 16;
+
+
+//									pixels[op] |= ((uint8_t *)bmp.pdata)[ip++] << 8;
+//									pixels[op] |= ((uint8_t *)bmp.pdata)[ip++] << 16;
 									op++;
 								}
 							}
-							bfree(bmp);
 						}
-	
-						jpeg_finish_decompress(&cinfo);
-	
-						frame.timestamp = cur_time;
-						obs_source_output_video(wm->source, &frame);
+
 					}
-					jpeg_destroy_decompress(&cinfo);
+
+					frame.timestamp = cur_time;
+					obs_source_output_video(wm->source, &frame);
 				}
 			} else {
 				bzero(pixels, 1280 * 720 * 4);

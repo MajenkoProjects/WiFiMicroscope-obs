@@ -18,7 +18,20 @@ set(LINUX_MAINTAINER_EMAIL "git@majenko.co.uk")
 
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/wifimicroscope-main.c src/wifimicroscope-source.c)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/wifimicroscope-main.c src/wifimicroscope-source.c 
+
+ffjpeg-md/src/huffman.c
+ffjpeg-md/src/jfif.c
+ffjpeg-md/src/quant.c 
+ffjpeg-md/src/bitstr.c
+ffjpeg-md/src/bmp.c
+ffjpeg-md/src/color.c
+ffjpeg-md/src/dct.c
+ffjpeg-md/src/zigzag.c
+ffjpeg-md/src/md.c
+
+
+)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
@@ -49,9 +62,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-macros.generated.h)
 
 # --- Platform-independent build settings ---
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/ffjpeg-md/src)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs jpeg)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
 
 # --- End of section ---
 

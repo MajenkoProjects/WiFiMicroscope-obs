@@ -174,13 +174,11 @@ if(OS_POSIX)
   target_compile_options(
     ${CMAKE_PROJECT_NAME}
     PRIVATE
-      -Werror
       -Wextra
       -Wvla
       -Wformat
       -Wformat-security
       -Wswitch
-      -Wunused-parameter
       -Wno-unused-function
       -Wno-missing-field-initializers
       -fno-strict-aliasing
