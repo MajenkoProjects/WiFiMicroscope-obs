@@ -126,6 +126,7 @@ static void *video_thread(void *data) {
 								}
 							}
 						}
+						bmp_free(&bmp);
 
 					}
 
